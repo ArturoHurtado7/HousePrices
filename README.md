@@ -1,20 +1,20 @@
 # HousePrices
-## Instalation
+## Installation
 
-Initialice the virtual Enviroment, and activate:
+Initialize the virtual Environment, and activate:
 
 ```bash
 py -m venv venv
 venv\scripts\activate
 ```
 
-at the end we have to deactivate the virtual enviroment with the command:
+at the end we have to deactivate the virtual environment with the command:
 
 ```bash
 deactivate
 ```
 
-We need to install the following python libraries into the virtual enviroment: 
+We need to install the following python libraries into the virtual environment:
 
 * Twisted
 * Scrapy
@@ -24,7 +24,7 @@ We need to install the following python libraries into the virtual enviroment:
 pip install Twisted Scrapy Autopep8
 ```
 
-if this doesn't work we have to download the library from [Twisted](https://www.lfd.uci.edu/~gohlke/pythonlibs/#twisted) repository depending on the OS and python installated, in my case i have win10 and python 3.9 therefore the wheel is Twisted-20.3.0-cp39-cp39-win_amd64.whl and run:
+if this doesn't work we have to download the library from [Twisted](https://www.lfd.uci.edu/~gohlke/pythonlibs/#twisted) repository depending on the OS and python installated, in my case i have win10 and python 3.9 therefore the wheel is Twisted-20.3.0-cp39-cp39-win_amd64.whl and run the following command:
 
 ```bash
 pip install Twisted-20.3.0-cp39-cp39-win_amd64.whl
