@@ -16,9 +16,9 @@ deactivate
 
 We need to install the following python libraries into the virtual enviroment: 
 
-*Twisted
-*Scrapy
-*Autopep8
+* Twisted
+* Scrapy
+* Autopep8
 
 ```bash
 pip install Twisted Scrapy Autopep8
