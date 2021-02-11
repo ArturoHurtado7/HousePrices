@@ -20,9 +20,10 @@ We need to install the following python libraries into the virtual environment:
 * Scrapy
 * Autopep8
 * selenium
+* requests
 
 ```bash
-pip install Twisted Scrapy Autopep8
+pip install twisted scrapy autopep8 requests
 pip install -U selenium
 ```
 
