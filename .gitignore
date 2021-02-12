@@ -138,4 +138,4 @@ dmypy.json
 cython_debug/
 
 # Data scraped
-parent_info.txt
+regions_info.txt

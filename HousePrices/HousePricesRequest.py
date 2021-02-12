@@ -36,6 +36,38 @@ add_str = '?ad=|#|||||||||||||||||||||||||||||||||||||||'
 #*************************************************************************************
 
 #*************************************************************************************
+# Name:         process_file
+# Description:  flux to creates an process a file
+# p_type        process type
+#                   r - region
+#                   a - apartment
+# file_name     processed file name
+#*************************************************************************************
+def process_file(p_type, file_name):
+    # Validate the existence of the regions file
+    exist = path.exists(file_name)
+
+    if not(exist):
+        # in case that the file doesn't exist then the file is created
+        if p_type == 'r':
+            write_region_file(file_name)
+    else:
+        # in case that the file is empty then the file is created
+        size = os.path.getsize(file_name)
+        if size == 0:
+            if p_type == 'r':
+                write_region_file(file_name)
+
+    # Reads the file lines
+    try:
+        if p_type == 'r':
+            file_list = read_file(file_name)
+            write_apartment_file(file_list)
+    except:
+        print('there is not regions file')
+    
+
+#*************************************************************************************
 # Name:         write_region_file
 # Description:  write into the region file
 # file_name:    the file name with extension
@@ -94,6 +126,7 @@ def process_regions(s_url):
     time.sleep(delay)
     return regions
 
+
 #*************************************************************************************
 #                               Utilities Functions
 #*************************************************************************************
@@ -141,25 +174,7 @@ def read_file(file_name):
 # Description:  where the program started
 #*************************************************************************************
 def main():
-    # Validate the existence of the regions file
-    exist = path.exists('regions_info.txt')
-
-    if not(exist):
-        # in case that the file doesn't exist then the file is created
-        write_region_file('regions_info.txt')
-    else:
-        # in case that the file is empty then the file is created
-        size = os.path.getsize('regions_info.txt')
-        if size == 0:
-            write_region_file('regions_info.txt')
-
-    # Reads all the lines of the file 
-    try:
-        line_list = read_file('regions_info.txt')
-        for ll in line_list:
-            print(ll)
-    except:
-        print('there is not regions file')
+    process_file('r', 'regions_info.txt')
 
 if __name__ == '__main__':
     main()
