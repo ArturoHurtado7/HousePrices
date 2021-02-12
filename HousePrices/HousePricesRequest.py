@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 # Global variables
 #*************************************************************************************
 # Amount of time to wait between requests
-delay = 4
+delay = 3
 
 # base url to scrape
 root_url = 'https://www.fincaraiz.com.co'
@@ -82,27 +82,43 @@ def write_apartment_file(file_list):
     if page.status_code == 200:
         
         t = html.fromstring(page.content)
-        links_aptos = t.xpath('//div[@id="divAdverts"]//li[@class="title-grid"]/@onclick')
+        links_aptos = t.xpath('//div[@id="divAdverts"]//ul[starts-with(@id,"rowIndex")]/li[@class="title-grid"]/@onclick')
         print(len(links_aptos))
         count = 0
 
         for l_aptos in links_aptos:
+            l_aptos = l_aptos.replace(root_url,'\'')
             link_apto = l_aptos.split('\'')[-2]
             url = root_url + link_apto
-            apto_page = requests.get(url)
+
             print('url: ', url)
+            apto_page = requests.get(url)
+            print('status_code', apto_page.status_code)
             time.sleep(delay)
 
             if apto_page.status_code == 200:
                 t = html.fromstring(apto_page.content)
-                title = t.xpath('//div[@class = "title"]//div[@class="box"]/h1/text()')[0]
+                try:
+                    title = t.xpath('//div[@class = "title"]//div[@class="box"]/h1/text()')[0]
+                except:
+                    title = ''
                 print('title: ', title)
-                neighborhood = t.xpath('//div[@class = "title"]//div[@class="box"]/span/span/text()')[0]
+
+                try:
+                    neighborhood = t.xpath('//div[@class = "title"]//div[@class="box"]/span/span/text()')[0]
+                except:
+                    neighborhood = ''
                 print('neighborhood: ', neighborhood)
-                adress = t.xpath('//div[@class = "title"]//div[@class="box"]/div/span/text()')[0]
+
+                try:
+                    adress = t.xpath('//div[@class = "title"]//div[@class="box"]/div/span/text()')[0]
+                except:
+                    adress = ''
                 print('adress: ', adress)
 
                 imn_type = t.xpath('//div[@id="typology"]//tbody/tr')
+                for i_type in  imn_type:
+                    print(i_type.xpath('//td/text()'))
 
             
 
