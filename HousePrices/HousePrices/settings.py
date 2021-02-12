@@ -15,6 +15,7 @@ NEWSPIDER_MODULE = 'HousePrices.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'HousePrices (+http://www.yourdomain.com)'
+USER_AGENT = "LinkedInbot (+https://www.linkedin.com/)"
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
