@@ -4,18 +4,17 @@
 #           Using request and lxml
 #*************************************************************************************
 import requests
-import os.path
 import time
 
+from file import file
 from lxml import html
 from bs4 import BeautifulSoup
-from os import path
 
 #*************************************************************************************
 # Global variables
 #*************************************************************************************
 # Amount of time to wait between requests
-delay = 2
+delay = 4
 
 # base url to scrape
 root_url = 'https://www.fincaraiz.com.co'
@@ -45,7 +44,8 @@ add_str = '?ad=|#|||||||||||||||||||||||||||||||||||||||'
 #*************************************************************************************
 def process_file(p_type, file_name):
     # Validate the existence of the regions file
-    exist = path.exists(file_name)
+    f = file(file_name)
+    exist = f.val_file()
 
     if not(exist):
         # in case that the file doesn't exist then the file is created
@@ -53,19 +53,58 @@ def process_file(p_type, file_name):
             write_region_file(file_name)
     else:
         # in case that the file is empty then the file is created
-        size = os.path.getsize(file_name)
+        size = len(f.read_file())
         if size == 0:
             if p_type == 'r':
                 write_region_file(file_name)
 
     # Reads the file lines
-    try:
+    #try:
         if p_type == 'r':
-            file_list = read_file(file_name)
+            file_list = f.read_file()
             write_apartment_file(file_list)
-    except:
-        print('there is not regions file')
-    
+    #except:
+    #    print('there is not regions file')
+
+#*************************************************************************************
+# Name:         write_apartment_file
+# Description:  write into the apartment file
+# file_list:    list with all the url to search
+#*************************************************************************************
+def write_apartment_file(file_list):
+    #for fl in file_list:
+    #    print('start_url: ', fl)
+
+    url = root_url + file_list[0]
+    print('url: ', url)
+    page = requests.get(root_url + file_list[0])
+    time.sleep(delay)
+    if page.status_code == 200:
+        
+        t = html.fromstring(page.content)
+        links_aptos = t.xpath('//div[@id="divAdverts"]//li[@class="title-grid"]/@onclick')
+        print(len(links_aptos))
+        count = 0
+
+        for l_aptos in links_aptos:
+            link_apto = l_aptos.split('\'')[-2]
+            url = root_url + link_apto
+            apto_page = requests.get(url)
+            print('url: ', url)
+            time.sleep(delay)
+
+            if apto_page.status_code == 200:
+                t = html.fromstring(apto_page.content)
+                title = t.xpath('//div[@class = "title"]//div[@class="box"]/h1/text()')[0]
+                print('title: ', title)
+                neighborhood = t.xpath('//div[@class = "title"]//div[@class="box"]/span/span/text()')[0]
+                print('neighborhood: ', neighborhood)
+                adress = t.xpath('//div[@class = "title"]//div[@class="box"]/div/span/text()')[0]
+                print('adress: ', adress)
+
+                imn_type = t.xpath('//div[@id="typology"]//tbody/tr')
+
+            
 
 #*************************************************************************************
 # Name:         write_region_file
@@ -75,7 +114,7 @@ def process_file(p_type, file_name):
 def write_region_file(file_name):
     parent_extracted = {}
     parent = {}
-    line_list = []
+    info_list = []
 
     # Iterate all the start_urls 
     for s_url in start_urls:
@@ -89,9 +128,9 @@ def write_region_file(file_name):
         regions_info = parent_extracted[p_e]['regions_info']
         for p_i in regions_info:
             info = regions_info[p_i]['url']
-            line_list.append(info)
+            info_list.append(info)
 
-    write_file(file_name, line_list)
+    file(file_name).write_file(info_list)
 
 #*************************************************************************************
 # Name:         process_regions
@@ -101,6 +140,7 @@ def write_region_file(file_name):
 def process_regions(s_url):
     regions = {}
     page = requests.get(s_url)
+    time.sleep(delay)
     # continues if everything is ok
     if page.status_code == 200:
         print('start_url: ', s_url)
@@ -123,47 +163,7 @@ def process_regions(s_url):
             'regions_info': regions_info
         }
     # wait for a few seconds
-    time.sleep(delay)
     return regions
-
-
-#*************************************************************************************
-#                               Utilities Functions
-#*************************************************************************************
-
-#*************************************************************************************
-# Name:         write_file
-# Description:  write lines into a file
-# file_name:    the file name with extension
-#*************************************************************************************
-def write_file(file_name, line_list):
-    # Open file in write mode
-    f = open(file_name,'w', encoding='utf-8')
-
-    # Write lines into the file
-    for l_list in line_list:
-        f.write(l_list + '\n')
-
-#*************************************************************************************
-# Name:         read_file
-# Description:  extract the lines from a file
-# file_name:    the file name with extension
-# return:       line_list - list with lines from a file
-#*************************************************************************************
-def read_file(file_name):
-    line_list = []
-
-    # Open file in read mode
-    f = open(file_name,'r', encoding='utf-8')
-
-    # Read all the lines
-    lines = f.readlines()
-
-    # Save lines into a list
-    for l in lines:
-        line_list.append(l.strip())
-    
-    return line_list
 
 #*************************************************************************************
 #                                   Main Function
