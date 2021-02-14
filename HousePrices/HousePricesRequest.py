@@ -1,7 +1,8 @@
 #*************************************************************************************
+# Name:     HousePricesRequest.py
 # Date:     2021/02/11
-# Objetive: Extract House prices data from - https://www.fincaraiz.com.co
-#           Using request and lxml
+# Objetive: Extract House prices from - https://www.fincaraiz.com.co
+#           Using "request" and "lxml" libraries
 #*************************************************************************************
 import requests
 import time
@@ -10,11 +11,15 @@ from file import file
 from lxml import html
 from bs4 import BeautifulSoup
 
+
 #*************************************************************************************
 # Global variables
 #*************************************************************************************
-# Amount of time to wait between requests
+# Amount of time to wait between requests in seconds
 delay = 3
+
+# Program Name
+program_name = 'HousePricesRequest.py'
 
 # base url to scrape
 root_url = 'https://www.fincaraiz.com.co'
@@ -30,97 +35,112 @@ start_urls = [
 # String to concatenate
 add_str = '?ad=|#|||||||||||||||||||||||||||||||||||||||'
 
+
 #*************************************************************************************
 #                               Logic Functions
 #*************************************************************************************
 
 #*************************************************************************************
-# Name:         process_file
-# Description:  flux to creates an process a file
+# Name:         validate_file
+# Description:  Validate file existence
 # p_type        process type
 #                   r - region
 #                   a - apartment
-# file_name     processed file name
+# file_name     processed file
 #*************************************************************************************
-def process_file(p_type, file_name):
-    # Validate the existence of the regions file
-    f = file(file_name)
-    exist = f.val_file()
-
-    if not(exist):
-        # in case that the file doesn't exist then the file is created
-        if p_type == 'r':
-            write_region_file(file_name)
-    else:
-        # in case that the file is empty then the file is created
-        size = len(f.read_file())
-        if size == 0:
+def validate_file(p_type, file_name):
+    try:
+        f = file(file_name)
+        exist = f.val_file()
+        if not(exist):
+            # in case that the file doesn't exist then it's created
             if p_type == 'r':
                 write_region_file(file_name)
+        else:
+            # in case that the file is empty then it's created
+            size = len(f.read_file())
+            if size == 0:
+                if p_type == 'r':
+                    write_region_file(file_name)
+    except Exception as e:
+        print(10, program_name, "Error validate_file:", e)
 
+
+#*************************************************************************************
+# Name:         process_file
+# Description:  process file existence
+# p_type        process type
+#                   r - region
+#                   a - apartment
+# file_name     processed file
+#*************************************************************************************
+def process_file(p_type, file_name):
     # Reads the file lines
-    #try:
+    try:
+        f = file(file_name)
+        file_list = f.read_file()
+        # case type region
         if p_type == 'r':
-            file_list = f.read_file()
-            write_apartment_file(file_list)
-    #except:
-    #    print('there is not regions file')
+            #for s_url in file_list:
+            #    write_apartment_file(s_url)
+            print('file_list[0]', file_list[0])
+            write_apartment_file(file_list[0])
+    except Exception as e:
+        print(20, program_name, "Error process_file:", e)
+
 
 #*************************************************************************************
 # Name:         write_apartment_file
 # Description:  write into the apartment file
-# file_list:    list with all the url to search
+# s_url:        url to search
 #*************************************************************************************
-def write_apartment_file(file_list):
-    #for fl in file_list:
-    #    print('start_url: ', fl)
-
-    url = root_url + file_list[0]
-    print('url: ', url)
-    page = requests.get(root_url + file_list[0])
+def write_apartment_file(s_url):
+    # Join the root url with the rest of the url
+    url = root_url + s_url
+    # Make the request 
+    page = requests.get(url)
+    # delay beetween requests
     time.sleep(delay)
+    # Case when the code is OK
     if page.status_code == 200:
-        
+
         t = html.fromstring(page.content)
         links_aptos = t.xpath('//div[@id="divAdverts"]//ul[starts-with(@id,"rowIndex")]/li[@class="title-grid"]/@onclick')
-        print(len(links_aptos))
-        count = 0
 
         for l_aptos in links_aptos:
+
             l_aptos = l_aptos.replace(root_url,'\'')
             link_apto = l_aptos.split('\'')[-2]
-            url = root_url + link_apto
 
-            print('url: ', url)
-            apto_page = requests.get(url)
-            print('status_code', apto_page.status_code)
-            time.sleep(delay)
+            print('link_apto', link_apto)
+            extract_info_apto(link_apto)
+    else:
+        print("Request with code:", page.status_code)
 
-            if apto_page.status_code == 200:
-                t = html.fromstring(apto_page.content)
-                try:
-                    title = t.xpath('//div[@class = "title"]//div[@class="box"]/h1/text()')[0]
-                except:
-                    title = ''
-                print('title: ', title)
 
-                try:
-                    neighborhood = t.xpath('//div[@class = "title"]//div[@class="box"]/span/span/text()')[0]
-                except:
-                    neighborhood = ''
-                print('neighborhood: ', neighborhood)
+#*************************************************************************************
+# Name:         extract_info_apto
+# Description:  request from each 
+# file_list:    list with all the url to search
+#*************************************************************************************
+def extract_info_apto(link_apto):
+    url = root_url + link_apto
+    print('url: ', url)
+    apto_page = requests.get(url)
+    print('status_code', apto_page.status_code)
+    time.sleep(delay)
 
-                try:
-                    adress = t.xpath('//div[@class = "title"]//div[@class="box"]/div/span/text()')[0]
-                except:
-                    adress = ''
-                print('adress: ', adress)
+    if apto_page.status_code == 200:
+        t = html.fromstring(apto_page.content)
+        title = t.xpath('//div[@class = "title"]//div[@class="box"]/h1/text()')[0]
+        neigh= t.xpath('//div[@class = "title"]//div[@class="box"]/span/span/text()')[0]
+        adress = t.xpath('//div[@class = "title"]//div[@class="box"]/div/span/text()')[0]
+        print('title: ', title, 'neigh: ', neigh, 'adress: ', adress)
 
-                imn_type = t.xpath('//div[@id="typology"]//tbody/tr')
-                for i_type in  imn_type:
-                    print(i_type.xpath('//td/text()'))
+        imn_type = t.xpath('//div[@id="typology"]//tbody/tr')
+        for i_type in  imn_type:
+            print(i_type.xpath('//td/text()'))
 
-            
 
 #*************************************************************************************
 # Name:         write_region_file
@@ -128,25 +148,26 @@ def write_apartment_file(file_list):
 # file_name:    the file name with extension
 #*************************************************************************************
 def write_region_file(file_name):
+    # Define function variables
     parent_extracted = {}
     parent = {}
     info_list = []
-
+    f = file(file_name)
     # Iterate all the start_urls 
     for s_url in start_urls:
         # Write regions
         parent = process_regions(s_url)
-
         # concatenate the current result with the previous results
         parent_extracted = {**parent_extracted, **parent}
-
+    # Iterate all the parent_extracted list
     for p_e in parent_extracted:
         regions_info = parent_extracted[p_e]['regions_info']
         for p_i in regions_info:
             info = regions_info[p_i]['url']
             info_list.append(info)
+    # Write the file
+    f.write_file(info_list)
 
-    file(file_name).write_file(info_list)
 
 #*************************************************************************************
 # Name:         process_regions
@@ -181,6 +202,7 @@ def process_regions(s_url):
     # wait for a few seconds
     return regions
 
+
 #*************************************************************************************
 #                                   Main Function
 #*************************************************************************************
@@ -190,6 +212,8 @@ def process_regions(s_url):
 # Description:  where the program started
 #*************************************************************************************
 def main():
+    # Validate regions file
+    validate_file('r', 'regions_info.txt')
     process_file('r', 'regions_info.txt')
 
 if __name__ == '__main__':
