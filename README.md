@@ -1,7 +1,7 @@
 # HousePrices
 ## Installation
 
-Initialize the virtual Environment, and activate:
+Initialize the virtual Environment, and activate it:
 
 ```bash
 py -m venv venv
