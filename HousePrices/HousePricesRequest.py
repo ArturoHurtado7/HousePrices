@@ -82,19 +82,19 @@ def process_file(p_type, file_name):
         # case type region
         if p_type == 'r':
             #for s_url in file_list:
-            #    write_apartment_file(s_url)
+            #    apartments_pages(s_url)
             print('file_list[0]', file_list[0])
-            write_apartment_file(file_list[0])
+            apartments_pages(file_list[0])
     except Exception as e:
         print(20, program_name, "Error process_file:", e)
 
 
 #*************************************************************************************
-# Name:         write_apartment_file
+# Name:         apartments_pages
 # Description:  write into the apartment file
 # s_url:        url to search
 #*************************************************************************************
-def write_apartment_file(s_url):
+def apartments_pages(s_url):
     # Join the root url with the rest of the url
     url = root_url + s_url
     # Make the request 
@@ -113,12 +113,11 @@ def write_apartment_file(s_url):
             links_aptos[i_aptos] = links_aptos[i_aptos].split('\'')[-2]
             print('links_aptos['+str(i_aptos)+']', links_aptos[i_aptos])
 
-        
-
-
             #extract_info_apto(links_aptos[i_aptos])
+
+        return links_aptos
     else:
-        print(30, "Error write_apartment_file: Request with code ", page.status_code)
+        print(30, "Error apartments_pages: Request with code ", page.status_code)
 
 
 #*************************************************************************************
