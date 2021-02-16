@@ -107,15 +107,18 @@ def write_apartment_file(s_url):
         t = html.fromstring(page.content)
         links_aptos = t.xpath('//div[@id="divAdverts"]//ul[starts-with(@id,"rowIndex")]/li[@class="title-grid"]/@onclick')
 
-        for l_aptos in links_aptos:
+        for i_aptos in range(len(links_aptos)):
 
-            l_aptos = l_aptos.replace(root_url,'\'')
-            link_apto = l_aptos.split('\'')[-2]
+            links_aptos[i_aptos] = links_aptos[i_aptos].replace(root_url,'\'')
+            links_aptos[i_aptos] = links_aptos[i_aptos].split('\'')[-2]
+            print('links_aptos['+str(i_aptos)+']', links_aptos[i_aptos])
 
-            print('link_apto', link_apto)
-            extract_info_apto(link_apto)
+        
+
+
+            #extract_info_apto(links_aptos[i_aptos])
     else:
-        print("Request with code:", page.status_code)
+        print(30, "Error write_apartment_file: Request with code ", page.status_code)
 
 
 #*************************************************************************************
