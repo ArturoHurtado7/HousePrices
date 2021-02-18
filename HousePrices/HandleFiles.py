@@ -12,7 +12,7 @@ from os import path
 # Program Name
 program_name = 'file.py'
 
-class file():
+class HandleFiles():
     #*************************************************************************************
     # file_name:    the file name with extension
     #*************************************************************************************

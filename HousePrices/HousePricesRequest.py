@@ -7,7 +7,7 @@
 import requests
 import time
 
-from file import file
+from HandleFiles import HandleFiles
 from lxml import html
 from bs4 import BeautifulSoup
 
@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 # Global variables
 #*************************************************************************************
 # Amount of time to wait between requests in seconds
-delay = 3
+delay = 1
 
 # Program Name
 program_name = 'HousePricesRequest.py'
@@ -34,6 +34,19 @@ start_urls = [
 
 # String to concatenate
 add_str = '?ad=|#|||||||||||||||||||||||||||||||||||||||'
+add_str = '?ad=30|#||||T|||||id|||||||||||||||||1|0||1||||2||||'
+
+
+#add_str_city = '?ad=30|1||||1|||||67|3630001||||||||||||||||1|0||1||||2||||||'
+
+#add_str_s_new = '?ad=30|2||||1|||||67|||||||||||||||||1|0||1||||2||||'
+#add_str_s_new = '?ad=30|2||||1|||||67|||||||||||||||||1|0||1||||2||||'
+#add_str_s_all = '?ad=30|2||||1|||||67|||||||||||||||||1|0||1||||||-1||||'
+#add_str_s_all = '?ad=30|2||||1|||||67|||||||||||||||||1|0||1||||||-1||||'
+#add_str_l_all = '?ad=30|2||||2|||||67|||||||||||||||||1|0||1||||||||||'
+#add_str_l_all = '?ad=30|2||||2|||||67|||||||||||||||||1|0||1||||||||||'
+#add_str_l_vac = '?ad=30|2||||3|||||67|||||||||||||||||1|0||1||||||||||'
+#add_str_l_vac = '?ad=30|2||||3|||||67|||||||||||||||||1|0||1||||||||||'
 
 
 #*************************************************************************************
@@ -50,7 +63,7 @@ add_str = '?ad=|#|||||||||||||||||||||||||||||||||||||||'
 #*************************************************************************************
 def validate_file(p_type, file_name):
     try:
-        f = file(file_name)
+        f = HandleFiles(file_name)
         exist = f.val_file()
         if not(exist):
             # in case that the file doesn't exist then it's created
@@ -77,14 +90,22 @@ def validate_file(p_type, file_name):
 def process_file(p_type, file_name):
     # Reads the file lines
     try:
-        f = file(file_name)
+        f = HandleFiles(file_name)
         file_list = f.read_file()
+        apartments_file = []
         # case type region
         if p_type == 'r':
             #for s_url in file_list:
             #    apartments_pages(s_url)
-            print('file_list[0]', file_list[0])
-            apartments_pages(file_list[0])
+            # ***********************************
+            file_pid = file_list[0].split(';')[0]
+            file_name = file_list[0].split(';')[1]
+            file_url = file_list[0].split(';')[2]
+
+            print('file_url', file_url)
+            apartments_file.extend(apartments_pages(file_pid, file_name, file_url))
+            for i_file in range(len(apartments_file)):
+                print('apartments_file['+str(i_file)+']', apartments_file[i_file])
     except Exception as e:
         print(20, program_name, "Error process_file:", e)
 
@@ -92,32 +113,46 @@ def process_file(p_type, file_name):
 #*************************************************************************************
 # Name:         apartments_pages
 # Description:  write into the apartment file
+# s_pid:        
+# file_name:    
 # s_url:        url to search
 #*************************************************************************************
-def apartments_pages(s_url):
+def apartments_pages(s_pid, s_name, s_url):
     # Join the root url with the rest of the url
-    url = root_url + s_url
+    base_url = root_url + s_url
+    url = base_url
+    hasnext = False
     # Make the request 
-    page = requests.get(url)
-    # delay beetween requests
-    time.sleep(delay)
-    # Case when the code is OK
-    if page.status_code == 200:
+    while True:
+        page = requests.get(url)
+        # delay beetween requests
+        time.sleep(delay)
+        # Case when the code is OK
+        if page.status_code == 200:
 
-        t = html.fromstring(page.content)
-        links_aptos = t.xpath('//div[@id="divAdverts"]//ul[starts-with(@id,"rowIndex")]/li[@class="title-grid"]/@onclick')
+            t = html.fromstring(page.content)
+            links_aptos = t.xpath('//div[@id="divAdverts"]//ul[starts-with(@id,"rowIndex")]/li[@class="title-grid"]/@onclick')
+            for i_aptos in range(len(links_aptos)):
 
-        for i_aptos in range(len(links_aptos)):
+                links_aptos[i_aptos] = links_aptos[i_aptos].replace(root_url,'\'')
+                links_aptos[i_aptos] = links_aptos[i_aptos].split('\'')[-2]
 
-            links_aptos[i_aptos] = links_aptos[i_aptos].replace(root_url,'\'')
-            links_aptos[i_aptos] = links_aptos[i_aptos].split('\'')[-2]
-            print('links_aptos['+str(i_aptos)+']', links_aptos[i_aptos])
+                #extract_info_apto(links_aptos[i_aptos])
+            var_siguiente = t.xpath('//div[@id="divPaginator"]/a[contains(@title,"Siguiente")]')
+            print('var_siguiente:', var_siguiente)
+            hasnext = len(var_siguiente) > 0
+            print('hasnext: ', hasnext)
+            if not(hasnext):
+                break
+            
+            url = base_url + add_str.replace('#',str(var_siguiente[0]).replace('return Grid_PageChanged(\'','').replace('\')',''))
+            print('*'*15)
+            print('url:', url)
+            break
 
-            #extract_info_apto(links_aptos[i_aptos])
-
-        return links_aptos
-    else:
-        print(30, "Error apartments_pages: Request with code ", page.status_code)
+        else:
+            print(30, "Error apartments_pages: Request with code ", page.status_code)
+    return links_aptos
 
 
 #*************************************************************************************
@@ -154,7 +189,7 @@ def write_region_file(file_name):
     parent_extracted = {}
     parent = {}
     info_list = []
-    f = file(file_name)
+    f = HandleFiles(file_name)
     # Iterate all the start_urls 
     for s_url in start_urls:
         # Write regions
@@ -165,7 +200,7 @@ def write_region_file(file_name):
     for p_e in parent_extracted:
         regions_info = parent_extracted[p_e]['regions_info']
         for p_i in regions_info:
-            info = regions_info[p_i]['url']
+            info = str(regions_info[p_i]['pid']) + ';' + str(regions_info[p_i]['name']) + ';' + str(regions_info[p_i]['url'])
             info_list.append(info)
     # Write the file
     f.write_file(info_list)
@@ -194,6 +229,7 @@ def process_regions(s_url):
                 name = l.xpath('input/@locationname')[0]
                 url = l.xpath('a/@href')[0]
                 regions_info[pid] = {
+                    'pid': pid,
                     'name': name,
                     'url': url
                 }
