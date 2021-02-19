@@ -10,14 +10,14 @@ from os import path
 # Global variables
 #*************************************************************************************
 # Program Name
-program_name = 'file.py'
+program_name = 'HandleFiles.py'
 
 class HandleFiles():
     #*************************************************************************************
     # file_name:    the file name with extension
     #*************************************************************************************
     def __init__(self, file_name):
-        self.file_name = file_name
+        self.file_name = './' + file_name
 
     #*************************************************************************************
     # Name:         val_file
